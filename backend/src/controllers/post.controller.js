@@ -4,6 +4,7 @@ const { toFile } = require("@imagekit/nodejs")
 require('dotenv').config()
 const jwt = require("jsonwebtoken")
 const userModel = require('../models/user.model')
+const likeModel = require('../models/like.model')
 
 
 
@@ -12,21 +13,7 @@ const imagekit = new ImageKit({
 })
 
 async function createPostController(req,res){
-    const token = req.cookies.token
-    if(!token){
-        return res.status(401).json({
-            message:"token not provided , unauthorized access"
-        })
-    }
-    console.log(req.body, req.file)
-    let decode =null
-    try{
-        decode = jwt.verify(token,process.env.JWT_SECRET)
-    }catch(err){
-        return res.status(401).json({
-            message:"user not authorized"
-        })
-    }
+    
     const file = await imagekit.files.upload({
         file: await toFile(Buffer.from(req.file.buffer), 'file'),
         fileName: "Test",
@@ -46,21 +33,8 @@ async function createPostController(req,res){
 } 
 
 async function getPostController(req,res){
-    const token = req.cookies.token
-    if(!token){
-        return res.status(401).json({
-            message:"token not provided , unauthorized access"
-        })
-    }
-    let decode
-    try{
-        decode= jwt.verify(token,process.env.JWT_SECRET)
-    }catch(err){
-        return res.status(401).json({
-            message:"user not authorized"
-        })
-    }
-    const userId = decode.id
+    
+    const userId = req.user.id
     const posts = await postModel.find({
         user:userId
     })
@@ -71,27 +45,12 @@ async function getPostController(req,res){
 }
 
 async function getPostDetailsController(req,res){
-    const token = req.cookies.token
-    if(!token){
-        return res.status(401).json({
-            message:"Unauthorized Access"
-            
-        })
-    }
-    let decode
-    try{
-        decode = jwt.verify(token,process.env.JWT_SECRET)
 
-    }catch(err){
-        return res.status(401).json({
-            message:"Invalid token"
-        })
-    }
 
-    const userId = decode.id
+    const userId = req.user.id
     const postId = req.params.postId
 
-    const post = await postModel.findById(postID)
+    const post = await postModel.findById(postId)
 
     if(!post){
         return res.status(404).json({
@@ -114,8 +73,32 @@ async function getPostDetailsController(req,res){
 
 }
 
+async function likePostController(req,res){
+    const username= req.user.username
+    const postId = req.params.postId
+    // console.log(postId)
+    const post  = await postModel.findById(postId)
+
+    if(!post){
+        return res.status(404).json(
+            {message:"post not found"}
+        )
+    }
+    const like = await likeModel.create({
+        post:postId,
+        user:username
+    })
+    res.status(201).json({
+        message:"post liked successfully",
+        like
+    })
+
+
+}
+
 module.exports = {
     createPostController,
     getPostController,
-    getPostDetailsController
+    getPostDetailsController,
+    likePostController
 }
