@@ -6,6 +6,7 @@ const upload = multer({ storage: multer.memoryStorage() })
 
 
 postRouter.post('/',upload.single("chacha"), postController.createPostController)
+postRouter.get('/',postController.getPostController)
 
 
 
