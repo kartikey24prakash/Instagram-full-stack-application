@@ -20,7 +20,6 @@ async function registerController(req, res){
             message: "User already exists" + (isuserAlreadyExsits.email == email ? "Email already exists" : "Username already exists")
         })
     }
-
     const hash = crypto.createHash('sha256').update(password).digest('hex');
 
     const user = await userModel.create({
