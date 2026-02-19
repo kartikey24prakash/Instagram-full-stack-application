@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import axios from 'axios'
 import '../style/form.scss'
+import {Link} from 'react-router-dom'
 
 const Register = () => {
     const [username, setUsername] = useState("")
@@ -14,14 +15,11 @@ const Register = () => {
             username,
             email,
             password
-        },{withCredentials:true} )
+        }, { withCredentials: true })
             .then(res => {
                 console.log(res.data);
-
             })
-
     }
-
     return (
 
         <main>
@@ -51,6 +49,8 @@ const Register = () => {
                         name='password'
                         placeholder='Enter password' />
                     <button>Register</button>
+                    <p>Already have an account ? <Link className='toggleAuthForm' to='/login'>Login</Link></p>
+
                 </form>
             </div>
         </main>
