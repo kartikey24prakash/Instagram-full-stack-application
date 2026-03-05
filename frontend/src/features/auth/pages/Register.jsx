@@ -7,8 +7,6 @@ const Register = () => {
     const [username, setUsername] = useState("")
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
-
-
     async function handleSubmit(e) {
         e.preventDefault()
         axios.post('http://localhost:3000/api/auth/register', {
@@ -50,7 +48,6 @@ const Register = () => {
                         placeholder='Enter password' />
                     <button>Register</button>
                     <p>Already have an account ? <Link className='toggleAuthForm' to='/login'>Login</Link></p>
-
                 </form>
             </div>
         </main>
