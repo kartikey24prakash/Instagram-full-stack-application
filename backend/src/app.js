@@ -9,13 +9,13 @@ const cors = require('cors')
 const app = express()
 app.use(cors({
     credentials:true,
-    origin: "http://localhost:5173"
+    origin: ['http://localhost:5173' ,'http://localhost:5174']
 }))
 
 
 app.use(express.json());
 app.use(cookieParser())
 app.use('/api/auth',authRouter)
-app.use('/api/auth',postRouter)
+app.use('/api/post',postRouter)
 app.use('/api/user',userRouter)
 module.exports=app
