@@ -12,39 +12,39 @@ const imagekit = new ImageKit({
     privateKey: process.env.IMAGEKIT_PRIVATE_KEY
 })
 
-async function createPostController(req,res){
-    
+async function createPostController(req, res) {
+
     const file = await imagekit.files.upload({
         file: await toFile(Buffer.from(req.file.buffer), 'file'),
         fileName: "Test",
-        folder:"insta-clone"
+        folder: "insta-clone"
     })
     const post = await postModel.create(
         {
-            caption:req.body.caption,
-            imgurl:file.url,
-            user:decode.id
+            caption: req.body.caption,
+            imgurl: file.url,
+            user: req.user.id
         }
     )
     res.status(201).json({
-        message:"post is created ",
+        message: "post is created",
         post
     })
-} 
+}
 
-async function getPostController(req,res){
-    
+async function getPostController(req, res) {
+
     const userId = req.user.id
     const posts = await postModel.find({
-        user:userId
+        user: userId
     })
     res.status(200).json({
-        messge:"posts feched succesfully",
+        messge: "posts feched succesfully",
         posts
     })
 }
 
-async function getPostDetailsController(req,res){
+async function getPostDetailsController(req, res) {
 
 
     const userId = req.user.id
@@ -52,55 +52,92 @@ async function getPostDetailsController(req,res){
 
     const post = await postModel.findById(postId)
 
-    if(!post){
+    if (!post) {
         return res.status(404).json({
-            message:"post not found"
+            message: "post not found"
         })
     }
 
-    const isValidUser =post.user.toString()===userId
+    const isValidUser = post.user.toString() === userId
 
-    if(!isValidUser){
+    if (!isValidUser) {
         res.status(403).json({
-            message:"Forbidden content"
+            message: "Forbidden content"
         })
     }
 
     return re.status(201).json({
-        message:"post fetched successfully"
-        ,post
+        message: "post fetched successfully"
+        , post
     })
 
 }
 
-async function likePostController(req,res){
-    const username= req.user.username
+async function likePostController(req, res) {
+    const username = req.user.username
     const postId = req.params.postId
-    // console.log(postId)
-    const post  = await postModel.findById(postId)
+    const post = await postModel.findById(postId)
 
-    if(!post){
+    if (!post) {
         return res.status(404).json(
-            {message:"post not found"}
+            { message: "post not found" }
         )
     }
     const like = await likeModel.create({
-        post:postId,
-        user:username
+        post: postId,
+        user: username
     })
     res.status(201).json({
-        message:"post liked successfully",
+        message: "post liked successfully",
         like
     })
 
 
 }
 
-async function getFeedController(req,res){
-    const user =req.user
-    const posts = await postModel.find().populate('user')
+async function unlikePostController(req, res) {
+    const postId = req.params.postId
+    const username = req.user.username
+
+    const isLiked = await likeModel.findOne({
+        post: postId,
+        user: username
+    })
+
+    if (!isLiked) {
+        return res.status(400).json({
+            message: "Post didn't like"
+        })
+    }
+
+    await likeModel.findOneAndDelete({ _id: isLiked._id })
+
+    return res.status(200).json({
+        message: "post un liked successfully."
+    })
+}
+
+
+async function getFeedController(req, res) {
+
+    const user = req.user
+
+    const posts = await Promise.all((await postModel.find({}).sort({_id:-1}).populate("user").lean())
+        .map(async (post) => {
+            const isLiked = await likeModel.findOne({
+                user: user.username,
+                post: post._id
+            })
+
+            post.isLiked = Boolean(isLiked)
+
+            return post
+        }))
+
+
+
     res.status(200).json({
-        message:"feed fetched successfully",
+        message: "posts fetched successfully.",
         posts
     })
 }
@@ -110,4 +147,5 @@ module.exports = {
     getPostDetailsController,
     likePostController,
     getFeedController,
+    unlikePostController
 }

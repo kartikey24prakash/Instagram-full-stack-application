@@ -65,7 +65,7 @@ async function loginController (req, res)  {
     const hash = crypto.createHash('sha256').update(password).digest('hex')
     const isPasswordValid = hash == user.password
     if (!isPasswordValid) {
-        return res.statua(401).json({
+        return res.status(401).json({
             message: "password invalid"
         })
     }
